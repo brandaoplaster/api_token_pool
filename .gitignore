@@ -1,0 +1,81 @@
+# Created by https://www.toptal.com/developers/gitignore/api/elixir,phoenix,visualstudiocode,erlang
+# Edit at https://www.toptal.com/developers/gitignore?templates=elixir,phoenix,visualstudiocode,erlang
+
+### Elixir ###
+/_build
+/cover
+/deps
+/doc
+/.fetch
+erl_crash.dump
+*.ez
+*.beam
+/config/*.secret.exs
+.elixir_ls/
+
+### Elixir Patch ###
+
+### Erlang ###
+.eunit
+*.o
+*.plt
+.concrete/DEV_MODE
+
+# rebar 2.x
+.rebar
+rel/example_project
+ebin/*.beam
+deps
+
+# rebar 3
+.rebar3
+_build/
+_checkouts/
+
+### Erlang Patch ###
+rebar3.crashdump
+
+### Phoenix ###
+# gitignore template for Phoenix projects
+# website: http://www.phoenixframework.org/
+#
+# Recommended template: Elixir.gitignore
+
+# Temporary files
+/tmp
+
+# Static artifacts
+/node_modules
+/assets/node_modules
+
+# Since we are building assets from web/static,
+# we ignore priv/static. You may want to comment
+# this depending on your deployment strategy.
+/priv/static/
+
+# Installer-related files
+/installer/_build
+/installer/tmp
+/installer/doc
+/installer/deps
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### VisualStudioCode Patch ###
+# Ignore all local history of files
+.history
+.ionide
+
+# End of https://www.toptal.com/developers/gitignore/api/elixir,phoenix,visualstudiocode,erlang
