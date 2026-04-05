@@ -2,10 +2,10 @@ import Config
 
 # Configure your database
 config :api_token_pool, ApiTokenPool.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "api_token_pool_dev",
+  username: System.get_env("DATABASE_USER"),
+  password: System.get_env("DATABASE_PASSWORD"),
+  hostname: System.get_env("DATABASE_HOST"),
+  database: System.get_env("DATABASE_NAME"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
@@ -19,7 +19,7 @@ config :api_token_pool, ApiTokenPool.Repo,
 config :api_token_pool, ApiTokenPoolWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {127, 0, 0, 1}],
+  http: [ip: {0, 0, 0, 0}],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
