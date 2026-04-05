@@ -13,7 +13,7 @@ defmodule ApiTokenPool.TokenFactory do
       def allocated_token_factory do
         %Token{
           user: build(:user),
-          allocated_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          allocated_at: DateTime.truncate(DateTime.utc_now(), :second)
         }
       end
     end

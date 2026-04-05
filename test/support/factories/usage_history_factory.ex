@@ -7,7 +7,7 @@ defmodule ApiTokenPool.UsageHistoryFactory do
         %UsageHistory{
           token: build(:token),
           user: build(:user),
-          started_at: DateTime.utc_now() |> DateTime.truncate(:second),
+          started_at: DateTime.truncate(DateTime.utc_now(), :second),
           ended_at: nil
         }
       end
@@ -16,9 +16,8 @@ defmodule ApiTokenPool.UsageHistoryFactory do
         %UsageHistory{
           token: build(:token),
           user: build(:user),
-          started_at:
-            DateTime.add(DateTime.utc_now(), -120, :second) |> DateTime.truncate(:second),
-          ended_at: DateTime.utc_now() |> DateTime.truncate(:second)
+          started_at: DateTime.truncate(DateTime.add(DateTime.utc_now(), -120, :second), :second),
+          ended_at: DateTime.truncate(DateTime.utc_now(), :second)
         }
       end
     end
