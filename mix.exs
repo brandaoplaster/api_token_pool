@@ -10,6 +10,7 @@ defmodule ApiTokenPool.MixProject do
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
       deps: deps(),
+      test_coverage: [tool: ExCoveralls],
       listeners: [Phoenix.CodeReloader]
     ]
   end
@@ -26,7 +27,15 @@ defmodule ApiTokenPool.MixProject do
 
   def cli do
     [
-      preferred_envs: [precommit: :test]
+      preferred_envs: [
+        coveralls: :test,
+        "coveralls.detail": :test,
+        "coveralls.post": :test,
+        "coveralls.html": :test,
+        "coveralls.json": :test,
+        test: :test,
+        ci: :test
+      ]
     ]
   end
 
@@ -74,6 +83,7 @@ defmodule ApiTokenPool.MixProject do
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      ci: ["format --check-formatted", "credo --strict", "test --cover"],
       precommit: ["compile --warnings-as-errors", "deps.unlock --unused", "format", "test"]
     ]
   end
