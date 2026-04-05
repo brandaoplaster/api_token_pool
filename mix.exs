@@ -51,7 +51,14 @@ defmodule ApiTokenPool.MixProject do
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+      {:bandit, "~> 1.5"},
+      {:oban, "~> 2.19"},
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:excoveralls, "~> 0.18", only: :test},
+      {:sobelow, "~> 0.14", only: :dev},
+      {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:ex_machina, "~> 2.8.0", only: [:dev, :test]},
+      {:faker, "~> 0.18", only: [:dev, :test]}
     ]
   end
 
