@@ -60,6 +60,9 @@ jobs:
 
     env:
       MIX_ENV: test
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_HOST: localhost
     
     steps:
       - name: Checkout code
