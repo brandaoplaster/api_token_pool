@@ -1,0 +1,19 @@
+{
+  "skip_files": [
+    "lib/api_token_pool/application.ex",
+    "lib/api_token_pool.ex",
+    "lib/api_token_pool/repo.ex",
+    "lib/api_token_pool/mailer.ex",
+    "lib/api_token_pool_web.ex",
+    "lib/api_token_pool_web/endpoint.ex",
+    "lib/api_token_pool_web/router.ex",
+    "lib/api_token_pool_web/telemetry.ex",
+    "lib/api_token_pool_web/gettext.ex",
+    "test/support/*"
+  ],
+  "coverage_options": {
+    "treat_no_relevant_lines_as_covered": true,
+    "output_dir": "cover/",
+    "minimum_coverage": 75
+  }
+}
