@@ -20,6 +20,8 @@ config :api_token_pool, ApiTokenPoolWeb.Endpoint,
   secret_key_base: "t5fPDxVCi9j2zx+1Th6MxWKiqeQIgC8CqTQUpq5PxpCL6IKk7oUK16DFZr0MSJAk",
   server: false
 
+config :api_token_pool, Oban, testing: :manual
+
 # In test we don't send emails
 config :api_token_pool, ApiTokenPool.Mailer, adapter: Swoosh.Adapters.Test
 
