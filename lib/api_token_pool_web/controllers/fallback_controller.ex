@@ -19,9 +19,23 @@ defmodule ApiTokenPoolWeb.FallbackController do
     |> json(%{error: "no tokens available"})
   end
 
+  def call(conn, {:error, %Ecto.Changeset{} = changeset}) do
+    conn
+    |> put_status(:unprocessable_entity)
+    |> json(%{errors: translate_errors(changeset)})
+  end
+
   def call(conn, {:error, reason}) do
     conn
     |> put_status(:unprocessable_entity)
     |> json(%{error: reason})
+  end
+
+  defp translate_errors(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+      end)
+    end)
   end
 end

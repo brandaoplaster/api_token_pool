@@ -13,6 +13,9 @@ defmodule ApiTokenPoolWeb.Router do
     get "/tokens", TokenController, :index
     get "/tokens/:id", TokenController, :show
     get "/tokens/:id/history", TokenController, :history
+
+    get "/users", UserController, :index
+    post "/users", UserController, :create
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
