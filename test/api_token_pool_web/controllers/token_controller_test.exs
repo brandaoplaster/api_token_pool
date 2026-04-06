@@ -316,4 +316,85 @@ defmodule ApiTokenPoolWeb.TokenControllerTest do
       assert conn.status == 422
     end
   end
+
+  describe "POST /api/tokens/release-active (release_active)" do
+    defp create_allocated_token_with_history do
+      token = insert(:allocated_token)
+      insert(:usage_history, token: token, ended_at: nil)
+      token
+    end
+
+    test "releases all allocated tokens successfully", %{conn: conn} do
+      create_allocated_token_with_history()
+      create_allocated_token_with_history()
+
+      conn = post(conn, ~p"/api/tokens/release-active")
+
+      assert %{"data" => %{"released" => 2}} = json_response(conn, 200)
+    end
+
+    test "returns count of released tokens", %{conn: conn} do
+      create_allocated_token_with_history()
+      create_allocated_token_with_history()
+      create_allocated_token_with_history()
+
+      conn = post(conn, ~p"/api/tokens/release-active")
+
+      assert %{"data" => data} = json_response(conn, 200)
+      assert data["released"] == 3
+    end
+
+    test "returns 0 when no allocated tokens exist", %{conn: conn} do
+      insert(:token)
+      insert(:token)
+
+      conn = post(conn, ~p"/api/tokens/release-active")
+
+      assert %{"data" => %{"released" => 0}} = json_response(conn, 200)
+    end
+
+    test "returns 0 when no tokens exist", %{conn: conn} do
+      conn = post(conn, ~p"/api/tokens/release-active")
+
+      assert %{"data" => %{"released" => 0}} = json_response(conn, 200)
+    end
+
+    test "returns 200 status code", %{conn: conn} do
+      create_allocated_token_with_history()
+
+      conn = post(conn, ~p"/api/tokens/release-active")
+
+      assert conn.status == 200
+    end
+
+    test "returns JSON content type", %{conn: conn} do
+      conn = post(conn, ~p"/api/tokens/release-active")
+
+      assert List.keyfind(conn.resp_headers, "content-type", 0) ==
+               {"content-type", "application/json; charset=utf-8"}
+    end
+
+    test "ignores available tokens", %{conn: conn} do
+      insert(:token)
+      create_allocated_token_with_history()
+
+      conn = post(conn, ~p"/api/tokens/release-active")
+
+      assert %{"data" => %{"released" => 1}} = json_response(conn, 200)
+    end
+
+    test "tokens become available after release", %{conn: conn} do
+      create_allocated_token_with_history()
+      create_allocated_token_with_history()
+
+      post(conn, ~p"/api/tokens/release-active")
+
+      conn = get(conn, ~p"/api/tokens")
+      response = json_response(conn, 200)
+
+      tokens = response["data"]
+      assert length(tokens) == 2
+      assert Enum.all?(tokens, fn t -> t["status"] == "available" end)
+    end
+  end
 end
