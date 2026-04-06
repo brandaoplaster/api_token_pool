@@ -1,9 +1,12 @@
 defmodule ApiTokenPool.UseCases.AllocateTokenTest do
   use ApiTokenPool.DataCase, async: true
+  use Oban.Testing, repo: ApiTokenPool.Repo
+
   import ApiTokenPool.Factory
 
   alias ApiTokenPool.Repositories.{TokenRepository, UsageHistoryRepository}
   alias ApiTokenPool.UseCases.AllocateToken
+  alias ApiTokenPool.Workers.ReleaseTokenWorker
 
   describe "execute/1 - positive cases" do
     test "allocates available token to user" do
@@ -68,6 +71,22 @@ defmodule ApiTokenPool.UseCases.AllocateTokenTest do
 
       {:ok, result2} = AllocateToken.execute(user2.id)
       assert result2.user_id == user2.id
+    end
+
+    test "schedules a release job when allocating token" do
+      user = insert(:user)
+      insert(:token, status: :available)
+
+      now = DateTime.utc_now()
+      assert {:ok, token} = AllocateToken.execute(user.id)
+
+      [job] = all_enqueued(worker: ReleaseTokenWorker)
+
+      assert job.args == %{"token_id" => token.id}
+      assert job.worker == "ApiTokenPool.Workers.ReleaseTokenWorker"
+
+      scheduled_diff = DateTime.diff(job.scheduled_at, now, :second)
+      assert scheduled_diff >= 119 and scheduled_diff <= 121
     end
   end
 
