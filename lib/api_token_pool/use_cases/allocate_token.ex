@@ -1,6 +1,9 @@
 defmodule ApiTokenPool.UseCases.AllocateToken do
   alias ApiTokenPool.Repo
   alias ApiTokenPool.Repositories.{TokenRepository, UsageHistoryRepository}
+  alias ApiTokenPool.Workers.ReleaseTokenWorker
+
+  @token_expiration_seconds 120
 
   def execute(user_id) when is_binary(user_id) do
     case Ecto.UUID.cast(user_id) do
@@ -14,7 +17,8 @@ defmodule ApiTokenPool.UseCases.AllocateToken do
   defp allocate(user_id) do
     with {:ok, token} <- get_or_release_token(),
          {:ok, token} <- TokenRepository.allocate(token, user_id),
-         {:ok, _} <- UsageHistoryRepository.create(token, user_id) do
+         {:ok, _} <- UsageHistoryRepository.create(token, user_id),
+         {:ok, _job} <- schedule_token_release(token.id) do
       token
     else
       {:error, reason} -> Repo.rollback(reason)
@@ -33,5 +37,11 @@ defmodule ApiTokenPool.UseCases.AllocateToken do
          {:ok, _} <- UsageHistoryRepository.close(token.id) do
       {:ok, token}
     end
+  end
+
+  defp schedule_token_release(token_id) do
+    %{token_id: token_id}
+    |> ReleaseTokenWorker.new(schedule_in: @token_expiration_seconds)
+    |> Oban.insert()
   end
 end

@@ -36,6 +36,10 @@ config :logger, :default_formatter,
   format: "$time $metadata[$level] $message\n",
   metadata: [:request_id]
 
+config :api_token_pool, Oban,
+  repo: ApiTokenPool.Repo,
+  queues: [default: 10, tokens: 10]
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 

@@ -10,6 +10,7 @@ defmodule ApiTokenPool.Application do
     children = [
       ApiTokenPoolWeb.Telemetry,
       ApiTokenPool.Repo,
+      {Oban, Application.fetch_env!(:api_token_pool, Oban)},
       {DNSCluster, query: Application.get_env(:api_token_pool, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: ApiTokenPool.PubSub},
       # Start a worker by calling: ApiTokenPool.Worker.start_link(arg)
