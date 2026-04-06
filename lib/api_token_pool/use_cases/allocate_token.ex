@@ -2,7 +2,7 @@ defmodule ApiTokenPool.UseCases.AllocateToken do
   alias ApiTokenPool.Repo
   alias ApiTokenPool.Repositories.{TokenRepository, UsageHistoryRepository}
 
-  def execute(user_id)  when is_binary(user_id) do
+  def execute(user_id) when is_binary(user_id) do
     case Ecto.UUID.cast(user_id) do
       {:ok, _} -> Repo.transaction(fn -> allocate(user_id) end)
       :error -> {:error, :invalid_uuid}
