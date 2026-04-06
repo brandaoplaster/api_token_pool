@@ -157,4 +157,132 @@ defmodule ApiTokenPool.Repositories.TokenRepositoryTest do
       assert fetched_token.id in token_ids
     end
   end
+
+  describe "allocate/2" do
+    test "allocates available token to user" do
+      token = insert(:token)
+      user = insert(:user)
+
+      assert {:ok, updated} = TokenRepository.allocate(token, user.id)
+      assert updated.status == :allocated
+      assert updated.user_id == user.id
+      assert updated.allocated_at
+    end
+
+    test "allocated_at has no microseconds" do
+      token = insert(:token)
+      user = insert(:user)
+
+      {:ok, updated} = TokenRepository.allocate(token, user.id)
+
+      assert updated.allocated_at.microsecond == {0, 0}
+    end
+
+    test "updates existing allocated token to new user" do
+      user1 = insert(:user)
+      user2 = insert(:user)
+      token = insert(:allocated_token, user: user1)
+
+      assert {:ok, updated} = TokenRepository.allocate(token, user2.id)
+      assert updated.user_id == user2.id
+      assert updated.status == :allocated
+    end
+  end
+
+  describe "release/1" do
+    test "releases allocated token" do
+      token = insert(:allocated_token)
+
+      assert {:ok, updated} = TokenRepository.release(token)
+      assert updated.status == :available
+      assert is_nil(updated.user_id)
+      assert is_nil(updated.allocated_at)
+    end
+
+    test "releases already available token" do
+      token = insert(:token)
+
+      assert {:ok, updated} = TokenRepository.release(token)
+      assert updated.status == :available
+      assert is_nil(updated.user_id)
+      assert is_nil(updated.allocated_at)
+    end
+  end
+
+  describe "get_available/0" do
+    test "returns available token when one exists" do
+      token = insert(:token)
+
+      result = TokenRepository.get_available()
+
+      assert result.id == token.id
+      assert result.status == :available
+    end
+
+    test "returns nil when no available tokens exist" do
+      insert(:allocated_token)
+      insert(:allocated_token)
+
+      assert is_nil(TokenRepository.get_available())
+    end
+
+    test "returns nil when no tokens exist" do
+      assert is_nil(TokenRepository.get_available())
+    end
+
+    test "returns one token when multiple available" do
+      insert(:token)
+      insert(:token)
+      insert(:token)
+
+      result = TokenRepository.get_available()
+
+      assert result
+      assert result.status == :available
+    end
+
+    test "ignores allocated tokens" do
+      insert(:allocated_token)
+      available_token = insert(:token)
+
+      result = TokenRepository.get_available()
+
+      assert result.id == available_token.id
+    end
+  end
+
+  describe "release_oldest/0" do
+    test "releases oldest allocated token" do
+      token1 = insert(:allocated_token, allocated_at: ~U[2024-01-01 10:00:00Z])
+      token2 = insert(:allocated_token, allocated_at: ~U[2024-01-02 10:00:00Z])
+
+      assert {:ok, released} = TokenRepository.release_oldest()
+      assert released.id == token1.id
+      assert released.status == :available
+      assert is_nil(released.user_id)
+      assert is_nil(released.allocated_at)
+
+      token2_updated = TokenRepository.get(token2.id)
+      assert token2_updated.status == :allocated
+    end
+
+    test "returns error when no allocated tokens exist" do
+      insert(:token)
+      insert(:token)
+
+      assert {:error, :no_tokens_available} = TokenRepository.release_oldest()
+    end
+
+    test "returns error when no tokens exist" do
+      assert {:error, :no_tokens_available} = TokenRepository.release_oldest()
+    end
+
+    test "ignores available tokens" do
+      insert(:token)
+      allocated = insert(:allocated_token, allocated_at: ~U[2024-01-01 10:00:00Z])
+
+      assert {:ok, released} = TokenRepository.release_oldest()
+      assert released.id == allocated.id
+    end
+  end
 end
