@@ -224,4 +224,96 @@ defmodule ApiTokenPoolWeb.TokenControllerTest do
       assert response2 == response3
     end
   end
+
+  describe "POST /api/tokens/allocate (allocate)" do
+    test "allocates token successfully with valid user_id", %{conn: conn} do
+      insert(:token)
+      user = insert(:user)
+
+      conn = post(conn, ~p"/api/tokens/allocate", %{user_id: user.id})
+
+      assert %{"data" => token_data} = json_response(conn, 201)
+      assert token_data["token_id"]
+      assert token_data["user_id"] == user.id
+    end
+
+    test "returns 201 status code on success", %{conn: conn} do
+      insert(:token)
+      user = insert(:user)
+
+      conn = post(conn, ~p"/api/tokens/allocate", %{user_id: user.id})
+
+      assert conn.status == 201
+    end
+
+    test "returns JSON content type", %{conn: conn} do
+      insert(:token)
+      user = insert(:user)
+
+      conn = post(conn, ~p"/api/tokens/allocate", %{user_id: user.id})
+
+      assert List.keyfind(conn.resp_headers, "content-type", 0) ==
+               {"content-type", "application/json; charset=utf-8"}
+    end
+
+    test "allocates to different users sequentially", %{conn: conn} do
+      insert(:token)
+      insert(:token)
+      user1 = insert(:user)
+      user2 = insert(:user)
+
+      conn1 = post(conn, ~p"/api/tokens/allocate", %{user_id: user1.id})
+      conn2 = post(conn, ~p"/api/tokens/allocate", %{user_id: user2.id})
+
+      response1 = json_response(conn1, 201)
+      response2 = json_response(conn2, 201)
+
+      assert response1["data"]["user_id"] == user1.id
+      assert response2["data"]["user_id"] == user2.id
+    end
+
+    test "releases oldest token when no available tokens", %{conn: conn} do
+      insert(:token)
+      user1 = insert(:user)
+      user2 = insert(:user)
+
+      post(conn, ~p"/api/tokens/allocate", %{user_id: user1.id})
+      conn = post(conn, ~p"/api/tokens/allocate", %{user_id: user2.id})
+
+      assert %{"data" => token_data} = json_response(conn, 201)
+      assert token_data["user_id"] == user2.id
+    end
+
+    test "returns 400 for invalid user_id format", %{conn: conn} do
+      insert(:token)
+
+      conn = post(conn, ~p"/api/tokens/allocate", %{user_id: "invalid-uuid"})
+
+      assert json_response(conn, 400) == %{"error" => "invalid uuid format"}
+    end
+
+    test "returns 400 when user_id is missing", %{conn: conn} do
+      insert(:token)
+
+      conn = post(conn, ~p"/api/tokens/allocate", %{})
+
+      assert conn.status == 400
+    end
+
+    test "returns 422 when no tokens exist", %{conn: conn} do
+      user = insert(:user)
+
+      conn = post(conn, ~p"/api/tokens/allocate", %{user_id: user.id})
+
+      assert json_response(conn, 422) == %{"error" => "no tokens available"}
+    end
+
+    test "returns 422 status code when pool is empty", %{conn: conn} do
+      user = insert(:user)
+
+      conn = post(conn, ~p"/api/tokens/allocate", %{user_id: user.id})
+
+      assert conn.status == 422
+    end
+  end
 end
