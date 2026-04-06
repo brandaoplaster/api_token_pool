@@ -7,6 +7,9 @@ defmodule ApiTokenPoolWeb.Router do
 
   scope "/api", ApiTokenPoolWeb do
     pipe_through :api
+
+    get "/tokens", TokenController, :index
+    get "/tokens/:id", TokenController, :show
   end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
