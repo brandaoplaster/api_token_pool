@@ -388,4 +388,4 @@ The application uses Oban for background job processing. Jobs are configured to 
 
 ## License
 
-[Add your license here]
+MIT license
