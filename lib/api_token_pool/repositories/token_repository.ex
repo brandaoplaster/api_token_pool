@@ -49,4 +49,10 @@ defmodule ApiTokenPool.Repositories.TokenRepository do
       token -> token |> Token.release_changeset() |> Repo.update()
     end
   end
+
+  def list_allocated do
+    Token
+    |> where([t], t.status == :allocated)
+    |> Repo.all()
+  end
 end
