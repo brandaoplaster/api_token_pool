@@ -25,6 +25,7 @@ defmodule ApiTokenPool.Tokens.UsageHistory do
   end
 
   def close_changeset(usage_history) do
-    change(usage_history, %{ended_at: DateTime.utc_now()})
+    ended_at = DateTime.truncate(DateTime.utc_now(), :second)
+    change(usage_history, %{ended_at: ended_at})
   end
 end
