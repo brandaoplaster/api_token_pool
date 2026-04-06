@@ -9,6 +9,7 @@ defmodule ApiTokenPoolWeb.Router do
     pipe_through :api
 
     post "/tokens/allocate", TokenController, :allocate
+    post "/tokens/release-active", TokenController, :release_active
     get "/tokens", TokenController, :index
     get "/tokens/:id", TokenController, :show
     get "/tokens/:id/history", TokenController, :history
