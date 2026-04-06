@@ -1,9 +1,7 @@
 defmodule ApiTokenPoolWeb.TokenController do
   use ApiTokenPoolWeb, :controller
 
-  alias ApiTokenPool.UseCases.AllocateToken
-  alias ApiTokenPool.UseCases.GetToken
-  alias ApiTokenPool.UseCases.ListTokens
+  alias ApiTokenPool.UseCases.{AllocateToken, GetToken, ListTokens, ReleaseActiveTokens}
 
   action_fallback ApiTokenPoolWeb.FallbackController
 
@@ -37,6 +35,12 @@ defmodule ApiTokenPoolWeb.TokenController do
   def history(conn, %{"id" => id}) do
     with {:ok, history} <- GetToken.execute_history(id) do
       render(conn, :history, history: history)
+    end
+  end
+
+  def release_active(conn, _params) do
+    with {:ok, count} <- ReleaseActiveTokens.execute() do
+      render(conn, :release_active, count: count)
     end
   end
 end
