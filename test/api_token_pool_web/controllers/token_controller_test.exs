@@ -397,4 +397,49 @@ defmodule ApiTokenPoolWeb.TokenControllerTest do
       assert Enum.all?(tokens, fn t -> t["status"] == "available" end)
     end
   end
+
+  describe "GET /api/tokens/:id/history (history)" do
+    test "returns empty list when token has no history", %{conn: conn} do
+      token = insert(:token)
+
+      conn = get(conn, ~p"/api/tokens/#{token.id}/history")
+
+      assert %{"data" => []} = json_response(conn, 200)
+    end
+
+    test "returns usage history for token", %{conn: conn} do
+      token = insert(:token)
+      user = insert(:user)
+      insert(:usage_history, token: token, user: user)
+
+      conn = get(conn, ~p"/api/tokens/#{token.id}/history")
+
+      assert %{"data" => [history_data]} = json_response(conn, 200)
+      assert history_data["user_id"] == user.id
+      assert history_data["started_at"]
+    end
+
+    test "returns histories ordered by started_at desc", %{conn: conn} do
+      token = insert(:token)
+      insert(:usage_history, token: token, started_at: ~U[2024-01-01 10:00:00Z])
+      insert(:usage_history, token: token, started_at: ~U[2024-01-02 10:00:00Z])
+
+      conn = get(conn, ~p"/api/tokens/#{token.id}/history")
+
+      assert %{"data" => [first, second]} = json_response(conn, 200)
+      assert first["started_at"] > second["started_at"]
+    end
+
+    test "returns 400 for invalid UUID", %{conn: conn} do
+      conn = get(conn, ~p"/api/tokens/invalid-uuid/history")
+
+      assert json_response(conn, 400) == %{"error" => "invalid uuid format"}
+    end
+
+    test "returns 404 when token does not exist", %{conn: conn} do
+      conn = get(conn, ~p"/api/tokens/#{Ecto.UUID.generate()}/history")
+
+      assert json_response(conn, 404) == %{"error" => "not found"}
+    end
+  end
 end
