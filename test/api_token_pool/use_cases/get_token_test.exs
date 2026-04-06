@@ -113,4 +113,40 @@ defmodule ApiTokenPool.UseCases.GetTokenTest do
       assert result2.id == result3.id
     end
   end
+
+  describe "execute_history/1" do
+    test "returns empty list when token has no history" do
+      token = insert(:token)
+
+      assert {:ok, []} = GetToken.execute_history(token.id)
+    end
+
+    test "returns histories ordered by started_at desc" do
+      token = insert(:token)
+      history1 = insert(:usage_history, token: token, started_at: ~U[2024-01-01 10:00:00Z])
+      history2 = insert(:usage_history, token: token, started_at: ~U[2024-01-02 10:00:00Z])
+
+      assert {:ok, histories} = GetToken.execute_history(token.id)
+      assert [history2.id, history1.id] == Enum.map(histories, & &1.id)
+    end
+
+    test "returns only histories for specified token" do
+      token1 = insert(:token)
+      token2 = insert(:token)
+      history1 = insert(:usage_history, token: token1)
+      insert(:usage_history, token: token2)
+
+      assert {:ok, [result]} = GetToken.execute_history(token1.id)
+      assert result.id == history1.id
+    end
+
+    test "returns error when token not found" do
+      assert {:error, :not_found} = GetToken.execute_history(Ecto.UUID.generate())
+    end
+
+    test "returns error when invalid uuid" do
+      assert {:error, :invalid_uuid} = GetToken.execute_history("invalid")
+      assert {:error, :invalid_uuid} = GetToken.execute_history(nil)
+    end
+  end
 end
