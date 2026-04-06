@@ -21,7 +21,6 @@ Repo.transaction(fn ->
   end)
 end)
 
-
 Repo.transaction(fn ->
   Enum.each(1..105, fn _ ->
     %User{}
